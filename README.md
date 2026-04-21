@@ -4,7 +4,7 @@ Experiments with projection methods for **convex feasibility** and the **Best Ap
 
 This repository contains code accompanying:
 
-- Pablo Barros, *Extended, Modular Centralized Circumcentered Reflection Method*, to appear, 2025.  
+- Pablo Barros, *Deep Centralization for the Circumcentered Reflection Method*, to appear, 2025.  
 - R. Behling, Y. Bello-Cruz, A. N. Iusem, L. R. Santos, *On the Centralization of the Circumcentered Reflection Method*, Mathematical Programming, 205:337–371, 2024.
 
 Current focus:
