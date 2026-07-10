@@ -1,120 +1,107 @@
 # Projection Methods Benchmarks
 
-Experiments with projection methods for **convex feasibility** and the **Best Approximation Problem (BAP)**, including the extended centralized Circumcentered Reflection Method (ecCRM) and related algorithms.
+Experiments with projection methods for **convex feasibility** and the **Best Approximation Problem (BAP)**, including the extended centralized Circumcentered Reflection Method (ecCRM) and related classical algorithms.
 
-This repository contains code accompanying:
+This repository contains the numerical experiments accompanying:
 
-- Pablo Barros, *Deep Centralization for the Circumcentered Reflection Method*, to appear, 2025.  
-- R. Behling, Y. Bello-Cruz, A. N. Iusem, L. R. Santos, *On the Centralization of the Circumcentered Reflection Method*, Mathematical Programming, 205:337–371, 2024.
+* **P. Barros**, *Deep Centralization for the Circumcentered Reflection Method*, to appear, 2025.
+* **R. Behling, Y. Bello-Cruz, A. N. Iusem, L. R. Santos**, *On the Centralization of the Circumcentered Reflection Method*, Mathematical Programming, 205:337–371, 2024.
 
-Current focus:
+### Current Focus
 
-- PSD-cone feasibility via **matrix completion** (rank-deficient) to showcase the usefulness of **deep kernels**.  
-- High-dimensional **ellipsoid intersections** to validate the effect of **vanishing step sizes**.  
+* **PSD-cone feasibility** via rank-deficient matrix completion to showcase the computational efficiency of **deep kernels**.
+* High-dimensional **ellipsoid intersections** to validate the superlinear acceleration of **vanishing step sizes**.
 
-Future extensions will cover more geometries and methods (Halpern, Dykstra, etc.).
+*(Future extensions will cover additional geometries and methods such as Halpern and Dykstra).*
 
 ---
 
 ## 1. Overview
 
-This repository collects small, self-contained numerical experiments for projection-based algorithms in convex analysis, with an emphasis on:
+This repository provides small, self-contained numerical experiments for projection-based algorithms in convex analysis. It emphasizes:
 
-- Two-set and multi-set **convex feasibility** problems;  
-- The **Best Approximation Problem (BAP)** over intersections of convex sets;  
-- Comparing different **projection pipelines** and **centralization schemes**.
+* Two-set and multi-set convex feasibility problems.
+* Comparing different projection pipelines and centralization schemes.
 
-The main example is an implementation of the **extended centralized Circumcentered Reflection Method (ecCRM)**, where the “centralization” step is driven by an admissible operator \(T\). This decouples:
-
-- the **geometric engine** (PCRM/cCRM), from  
-- the design of the **projection kernel** \(T\) and the **step-size schedule** \((\alpha_k)\).
-
-Code for all experiments is available here: <https://github.com/pabl0ck/cfp-bap-lab>
+The core of this repository is the implementation of the **extended centralized Circumcentered Reflection Method (ecCRM)**. In ecCRM, the "centralization" step is driven by an admissible operator $T$ and a relaxation parameter $\alpha_k$. This modularity decouples the **geometric engine** (PCRM) from the design of the **projection kernel** and the **step-size schedule**.
 
 ---
 
 ## 2. Implemented Experiments
 
-### 2.1 PSD Matrix Completion (PSD-Cone Feasibility)
+### 2.1 PSD Matrix Completion (Benefit of Deep Kernels)
 
-We consider the positive semidefinite (PSD) matrix completion problem
+We consider the positive semidefinite (PSD) matrix completion problem:
 
-> find \(Z \in \mathcal{S}_+^n\) such that \(Z_{ij} = A_{ij}\) for \((i,j) \in \Omega\),
+> Find $Z \in \mathcal{S}_+^n$ such that $Z_{ij} = A_{ij}$ for $(i,j) \in \Omega$
 
-where \(\mathcal{S}_+^n\) is the PSD cone and \(\Omega\) encodes observed entries (an affine subspace).  
-This geometry is **rank-deficient** and lacks interior, so **superlinear convergence is not expected**, but one can still compare linear rates and constants.
+where $\mathcal{S}_+^n$ is the PSD cone and $\Omega$ encodes the observed entries (an affine subspace). Because this geometry is rank-deficient and lacks an interior, superlinear convergence is theoretically impossible. This makes it an ideal benchmark for comparing severe sublinear stagnation.
 
-We implement ecCRM with several choices of kernel operator \(T\):
+We implemented ecCRM alongside classical baselines (Alternating Projections and Cimmino) using different kernel operators:
 
-- `T = P_Y`         (“Cheap”)  
-- `T = P_Y P_X`     (“Standard / cCRM`)  
-- `T = P_Y P_X P_Y` (“Deep / modular ecCRM”)
+* `T = P_Y P_X` (**Standard / cCRM**)
+* `T = P_Y P_X P_Y` (**Deep / modular ecCRM**)
 
-where:
+**Key Results (Averaged over 50 instances, $100 \times 100$ matrices, 60% observed):**
 
-- \(P_X\) is projection onto the PSD cone,  
-- \(P_Y\) is projection onto the affine constraints (observed entries).
+* Classical methods like MAP and Cimmino fail to converge within a 2000-iteration limit.
+* Even though the Deep kernel uses more projections per iteration, it only adds cheap memory operations (affine projections), while the $O(n^3)$ eigenvalue decompositions remain exactly two per iteration.
+* At a fixed step size of $\alpha = 0.5$, the Deep kernel achieves a **37.1% reduction in iterations** and a **36.8% reduction in overall runtime** compared to standard cCRM.
 
-On a benchmark with 10 random instances (e.g., \(n = 100\), rank \(r = 5\), 40% observed entries), we compare the **Standard** kernel `T = P_Y P_X` against the **Deep** kernel `T = P_Y P_X P_Y` under several fixed step sizes \(\alpha\).
+This demonstrates that the choice of kernel $T$ is not merely a cosmetic modeling detail - it fundamentally alters the linear rate constant and structural performance of the algorithm.
 
-Key observation:
+### 2.2 High-Dimensional Ellipsoids (Acceleration via Vanishing Steps)
 
-- Even though the Deep kernel uses **more projections per iteration**, it consistently reduces **total runtime** and **iteration count**.
-- At the best fixed step size \(\alpha = 0.5\), the Deep kernel achieves about **9% lower CPU time** and **9% fewer iterations** than the standard cCRM kernel.
+To validate the superlinear convergence theory of ecCRM, we evaluate the intersection of two nearly tangent, anisotropic ellipsoids in $\mathbb{R}^{2000}$. Because the intersection has a nonempty interior, the methods are guaranteed to converge superlinearly.
 
-This shows that the **choice of kernel \(T\)** is not a cosmetic modeling detail: it has a **structural impact** on performance even in geometries where superlinear convergence is impossible.
+We compared a fixed-step approach against dynamic, vanishing step-size schedules ($\alpha_k \to 0$):
 
----
+* Fixed step: `α_k = 0.5` (Standard cCRM)
+* Sublinear decay: `α_k = 1/(k+2)`
+* Geometric decay: `α_k = 0.9^{k+1}`
 
-### 2.2 High-Dimensional Ellipsoids (Vanishing Step Sizes)
+**Key Results (Averaged over 50 runs, tolerance $10^{-12}$):**
 
-To validate the superlinear convergence theory for ecCRM with **vanishing step sizes**, we consider the intersection of two nearly tangent, anisotropic ellipsoids in \(\mathbb{R}^{2000}\) (with moderate condition numbers).
+* While sublinear schedules consistently reduce iterations by roughly 19% over the standard fixed-step baseline, aggressive geometric decay drastically accelerates convergence.
+* The geometric schedule `α_k = 0.9^{k+1}` yields a **60.2% reduction in iterations** and a **57.5% reduction in total runtime**, entirely dwarfing classical MAP and Cimmino baselines.
 
-Here the intersection has **nonempty interior**, so both cCRM and ecCRM are guaranteed to converge at least **linearly**. We compare:
-
-- cCRM with a **fixed step** `α = 0.5`, versus  
-- ecCRM with a **vanishing step-size sequence** `α_k = 1/(k+2)`.
-
-Numerical results (averaged over multiple runs) show that the **vanishing step-size schedule**:
-
-- Reduces the **iteration count** by roughly **15%**, and  
-- Reduces the **total runtime** by about **20%**,  
-- While reaching the **same final feasibility violation** (on the order of \(10^{-13}\)).
-
-This confirms that:
-
-1. The **kernel \(T\)** (e.g., Deep vs Standard) matters for the **linear phase** and constants;  
-2. The **step-size sequence \((\alpha_k)\)** is crucial to unlock the **superlinear regime** predicted by theory.
-
-In other words, **both parameters of ecCRM — the kernel \(T\) and the sequence \((\alpha_k)\)** — play essential and complementary roles.
+These tests confirm that **both** parameters of ecCRM - the kernel $T$ and the sequence $\alpha_k$ - play essential and complementary roles in achieving optimal algorithmic performance.
 
 ---
 
 ## 3. Repository Structure
 
-- `matrix_completion.py`  
-  - Script for PSD matrix completion experiments with different kernels.  
-- `ellipsoids.py`  
-  - Script for high-dimensional ellipsoid intersection and vanishing step-size tests.  
-
-Refer to the individual scripts for more details.
+* `matrix_completion.py`: Generates the PSD matrix completion benchmark, running ecCRM with shallow/deep kernels alongside MAP and Cimmino.
+* `ellipsoids.py`: Generates the high-dimensional ellipsoid intersection benchmark to test fixed vs. vanishing step-size schedules.
 
 ---
 
-## 4. Requirements
+## 4. Quickstart & Requirements
 
-Minimal dependencies:
+**Minimal dependencies:**
 
-- Python ≥ 3.9  
-- [NumPy](https://numpy.org/)  
-- [Pandas](https://pandas.pydata.org/)
+* Python $\ge$ 3.9
+* `numpy`
+* `pandas`
+* `matplotlib` (for generating convergence plots and descent trajectories)
+* `scipy` (recommended for numerical linear algebra optimizations)
 
-Additional (recommended) packages for some experiments:
-
-- [SciPy](https://scipy.org/) – for numerical linear algebra and optimization in some projection routines.  
-- [Matplotlib](https://matplotlib.org/) – for convergence plots and diagnostics.
-
-Install with:
+**Installation:**
 
 ```bash
+git clone https://github.com/pabl0ck/cfp-bap-lab.git
+cd cfp-bap-lab
 pip install numpy pandas scipy matplotlib
+
+```
+
+**Running the experiments:**
+
+```bash
+# Run the Deep Kernel matrix completion benchmark
+python matrix_completion.py
+
+# Run the vanishing step-size ellipsoid benchmark
+python ellipsoids.py
+
+```
