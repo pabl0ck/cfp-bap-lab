@@ -214,8 +214,9 @@ def run_single_instance(
     P_X = EllipsoidProjector(Q, c1)
     P_Y = EllipsoidProjector(Q, c2)
 
-    z0 = rng.standard_normal(n)
-    z0 = z0 * (10.0 / np.linalg.norm(z0))
+    u0 = rng.standard_normal(n)
+    u0 /= np.linalg.norm(u0)
+    z0 = x_star + 8.0 * u0
 
     T_func = lambda z, px=P_X, py=P_Y: py(px(z))
 
@@ -316,7 +317,7 @@ def run_single_instance(
 
 
 def run_ellipsoid_experiment(num_trials: int = 50):
-    n = 2000
+    n = 3000
     max_iter = 600
     tol = 1e-12
 
