@@ -87,7 +87,7 @@ def map_iterates(
         px = P_X(z)
         z_new = P_Y(px)
 
-        viol = np.linalg.norm(z_new - px)
+        viol = np.linalg.norm(z_new - P_X(z_new))
         viol_hist.append(viol)
         traj.append(z_new.copy())
 
