@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "data_manifest_sha256": {
-    "matrix_completion": "6215a7efcd967d15c475c1f55422163d712452875ed15a9e25dfa027ef500f9f",
-    "ellipsoids": "dc5b454f4f1e4a573af21f96c67e6de51ec189baaa7b34cca07235374ddb932e"
+    "matrix_completion": "4de12f8f470ee90b95a2b638ab7c8f3cfd11bbbd33424b4d5a38e006b1fe0c60",
+    "ellipsoids": "4b34f06f6df397648746ada1f3837012c464ce3f2e60a5cab9c6e8426c7ebc8f"
   },
-  "postprocessor_sha256": "724ef13616d9fa7fb07e0565dd8e0698eacf8a2faed08c1415db753904d98e41",
+  "postprocessor_sha256": "11e3712f4e0229fb1acfac24b09abcc60e004cf112ce3b376699332c3925246d",
   "outputs_sha256": {
-    "ellipsoids_summary.txt": "3ad8d3b9c8ba1f6900c5ac65ba6e24fb1de43d4e8b437f47b2395f4db44ea7bd",
+    "ellipsoids_summary.txt": "1213e4a59efb03c896cd9b991d131e17dd90919a8ced9f486e9a398007767106",
     "fig2.pdf": "f81501a9635352e7e12642057ad5e83ed522723dc25b5c19c562efc26934252a",
     "fig2.png": "78f720e3dfc295541cbc76c4bd8483dee7e2fc62784ad1cc5f176ca579859642",
     "fig2_data.csv": "0390fd99600ef1a56263fccf3459c0c5cc875678069a8eed3f914a40d4a1391b",
@@ -22,14 +22,14 @@
     "table1_pairs.csv": "a133a7c637796b33aed055f05d7a64264f55765c3c2d330658f0dc78247865ca",
     "table1_per_instance.csv": "baed57d2b2c5a790f7d3e68ae7f2ee69bff1127ab9b87e2c4b331595978eaf9e",
     "table1_seeds.csv": "a31ccfaadb7f7d7a02f74492e06fd6bbd07d24e3e37872fdccafd4439f4a63bd",
-    "table2.csv": "b9ff63ad49c3eec7e6ddc38bbf394d8cfb2451e949a8c6c4b62f2d29427f2835",
-    "table2.tex": "516848f7d172cf6d78238c89522c9a83662d2605eee5ef6bb7a6046516376500",
-    "table2_all_methods.csv": "a94e19cb8246e86a6a42f16ca570b4a3fbc9ff74dfd202018e6f43341350db83",
-    "table2_all_methods.tex": "251e5de1cf7194e67662dd4dd4244898d5044c32eb662707c4b0d04e9055693d",
+    "table2.csv": "1658e7a651ec25be7856b1ad1849342cd666b364d1bc7802b5d206cf5a41a418",
+    "table2.tex": "321530520db58c1de6ac4f508e50fdf365b4af4f2f11a3559e17b0f8b600d9a7",
+    "table2_all_methods.csv": "07a995c389ac6241c9a77a193f8dc5a2f3781340c8a8c1ac3bb4da897dea9ef6",
+    "table2_all_methods.tex": "321530520db58c1de6ac4f508e50fdf365b4af4f2f11a3559e17b0f8b600d9a7",
     "table2_headline_statistics.tex": "a1fa1bbe2fcd931c1646b9421b413cc18d10e5f266620e9d9d70d680486ebe31",
     "table2_paired_statistics.json": "c64cf67e0a2eb07796ef108a579acbc2045cd383af25d726557d334b5084ed93",
     "table2_pairs.csv": "016e204627792264ca011792bc0c3b668bcfb004d63d4f1f0f4a323fd0c9ec37",
-    "table2_per_instance.csv": "5cf8b63a15f2d3b49a5cdfeca0d50feda35cbbbc777e8549503f57ee62c4f7fb",
+    "table2_per_instance.csv": "8763f2aca1da958c8d6cf3d5556529bda5b4eedc298d7f09b6b5161bd192fbf9",
     "table2_seeds.csv": "8d74f8c896a082343cbba87c9916cf2359c6272f721aaa66246b79e5b37eafcd"
   }
 }

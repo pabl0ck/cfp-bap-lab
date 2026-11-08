@@ -84,18 +84,21 @@ def map_iterates(
     traj = [z.copy()]
     viol_hist: List[float] = []
 
+    if max_iter <= 0:
+        return traj, viol_hist
+
+    px = P_X(z)
     for _ in range(max_iter):
-        px = P_X(z)
         z_new = P_Y(px)
 
-        viol = np.linalg.norm(z_new - P_X(z_new))
+        # The stopping-test projection is also the next MAP input to P_Y.
+        px = P_X(z_new)
+        viol = np.linalg.norm(z_new - px)
         viol_hist.append(viol)
         traj.append(z_new.copy())
 
         if viol < tol:
             break
-
-        z = z_new
 
     return traj, viol_hist
 
@@ -193,12 +196,7 @@ def make_spd(
     return Q.T @ np.diag(eigvals) @ Q
 
 
-def run_single_instance(
-    rng: np.random.Generator,
-    max_iter: int,
-    tol: float,
-    n: int,
-):
+def generate_ellipsoid_instance(rng: np.random.Generator, n: int):
     x_star = rng.standard_normal(n)
 
     Q = make_spd(n, rng, anisotropy=5.0)
@@ -218,7 +216,16 @@ def run_single_instance(
     u0 = rng.standard_normal(n)
     u0 /= np.linalg.norm(u0)
     z0 = x_star + 8.0 * u0
+    return z0, P_X, P_Y
 
+
+def run_single_instance(
+    rng: np.random.Generator,
+    max_iter: int,
+    tol: float,
+    n: int,
+):
+    z0, P_X, P_Y = generate_ellipsoid_instance(rng, n)
     T_func = lambda z, px=P_X, py=P_Y: py(px(z))
     T_deep = lambda z, px=P_X, py=P_Y: py(px(py(z)))
 

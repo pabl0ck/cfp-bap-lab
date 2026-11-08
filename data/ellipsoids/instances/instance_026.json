@@ -278,7 +278,7 @@
     },
     {
       "Method": "MAP",
-      "Time": 2.5290824999683537,
+      "Time": 1.479,
       "Iters": 115,
       "FinalViol": 9.513307976397902e-13,
       "Violations": [

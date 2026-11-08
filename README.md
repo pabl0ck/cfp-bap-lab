@@ -2,7 +2,7 @@
 
 Numerical experiments for **Pablo Barros, Deep Centralization for the Circumcentered Reflection Method**.
 
-Release tag: **`eccrm-repro-v1`**. Cite the tagged snapshot rather than the moving default branch:
+Cite the exact commit linked in the manuscript. The original archive is tagged **`eccrm-repro-v1`**:
 
 <https://github.com/pabl0ck/cfp-bap-lab/tree/eccrm-repro-v1>
 
@@ -10,7 +10,7 @@ The package contains experiment scripts, all instance-generator seeds, lossless 
 
 ## Archived measurements and provenance
 
-The checked-in `data/` records are fresh complete runs of the archived scripts. Earlier unsaved timing samples cannot be reconstructed from published averages. The tables and figures in `artifacts/` are computed from these checked-in records; use those generated values and the recorded environment when preparing the manuscript associated with this release.
+The `data/` records combine the original measurements with refreshed timings for ellipsoid MAP. The MAP run used the same 50 seeds and reproduced each recorded convergence history exactly. The MAP times were recovered from the completed run's console output at a resolution of 0.001 s. The manifests record the original source hashes and the verified MAP timing environment. The tables and figures in `artifacts/` are computed from the checked-in records.
 
 Each dataset manifest records the configuration, seed list, Python/platform and NumPy build details, thread limits, source SHA-256 hashes, and a checksum for every instance file. Each instance file contains its ID, seed, methods, elapsed times, iteration counts, reported residuals, and complete residual histories. JSON stores binary64 values losslessly through Python's round-trip float representation. Derived CSV files preserve full precision.
 
@@ -19,7 +19,7 @@ Each dataset manifest records the configuration, seed list, Python/platform and 
 | Table 1; matrix-completion figure (`fig2`) | `data/matrix_completion/` | 50; seeds 42–91 | 120 × 120; rank 10; observation probability 0.75; tolerance 0.01; limit 1500 |
 | Table 2; ellipsoid figure (`fig3`) | `data/ellipsoids/` | 50; seeds 1234–1283 | dimension 3000; eigenvalues in [1,5]; center separation 1.9 in the Q norm; tolerance 1e-12; limit 600 |
 
-`experiment_config.json` lists every seed explicitly. Both generators use `numpy.random.default_rng(seed)` (PCG64). Every method receives the same generated problem and initial point within an instance. The ellipsoid archive also retains the additional deep-kernel comparator shown in the figure; Table 2 contains the seven methods used in the paper table.
+`experiment_config.json` lists every seed explicitly. Both generators use `numpy.random.default_rng(seed)` (PCG64). Every method receives the same generated problem and initial point within an instance. Table 2 includes all eight ellipsoid methods, including the deep-kernel schedule.
 
 ## Rebuild the paper outputs from saved measurements
 
@@ -28,11 +28,11 @@ Use Python 3.12. The manifests record the interpreter and numerical libraries us
 ```bash
 git clone https://github.com/pabl0ck/cfp-bap-lab.git
 cd cfp-bap-lab
-git checkout eccrm-repro-v1
+git checkout PAPER_COMMIT
 python -m venv .venv
 ```
 
-Activate the environment (`source .venv/bin/activate` on Linux/macOS, or `.venv\Scripts\Activate.ps1` in Windows PowerShell), then run:
+Replace `PAPER_COMMIT` with the commit cited in the paper. Activate the environment (`source .venv/bin/activate` on Linux/macOS, or `.venv\Scripts\Activate.ps1` in Windows PowerShell), then run:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -47,7 +47,7 @@ Generated files:
 | --- | --- |
 | `artifacts/table1.tex`, `table2.tex` | LaTeX tabular environments ready to insert into the paper; bold best means among methods that converged on every instance |
 | `artifacts/table1.csv`, `table2.csv` | Unrounded means and standard deviations behind each paper table |
-| `artifacts/table2_all_methods.tex` | Expanded ellipsoid table including the additional deep-kernel experiment |
+| `artifacts/table2_all_methods.tex` | The same eight-method ellipsoid table under the original expanded export filename |
 | `artifacts/table1_per_instance.csv`, `table2_per_instance.csv` | One row per instance and method, including seed, measured runtime, iterations, and reported final residual |
 | `artifacts/table1_pairs.csv`, `table2_pairs.csv` | Explicit matched-instance comparisons against cCRM |
 | `artifacts/table1_paired_statistics.json`, `table2_paired_statistics.json` | Paired differences and bootstrap confidence intervals |
@@ -77,7 +77,7 @@ To preserve the experiment scripts' aggregation, Table 1 uses sample SD (`ddof=1
 The numerical kernels, circumcenter safeguard, projection tolerances, method order, and timing boundaries are fixed in this release.
 
 - Matrix completion: method order is Cimmino, MAP, cCRM, deep ecCRM. MAP times only its alternating-projection updates and excludes the extra projection used by its stopping check. Other methods use the timing boundaries in `matrix_completion.py`. The externally evaluated final feasibility gap is outside all timed regions. Projection-count columns retain the original scripts' per-iteration accounting; diagnostic projections are excluded.
-- Ellipsoids: methods are executed sequentially in the order listed in each manifest. The timer encloses each original iteration routine. The reported residual is the final recorded stopping-test value: at the centralized point for circumcentered methods, at the new iterate for MAP, and at the input iterate of the final Cimmino pass. The latter routine may return an additional averaged point. These existing conventions are retained and documented rather than silently changed.
+- Ellipsoids: the original run executed methods in the order listed in each manifest. The MAP-only rerun reuses the $P_X$ projection computed for the previous stopping test. Each timer encloses the iteration routine, including the stopping test. The reported residual is the final recorded stopping-test value at the centralized point for circumcentered methods, at the new iterate for MAP, and at the input iterate of the final Cimmino pass.
 - `OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS`, and `MKL_NUM_THREADS` are set to 1 before NumPy is imported. Instance generation and archive writing are outside the measured algorithm times.
 
 A run that reaches the iteration cap remains in the raw records and plots; it is not treated as a successful solve merely because a runtime is available. The generated tables highlight runtimes only among methods that reached tolerance on every instance.

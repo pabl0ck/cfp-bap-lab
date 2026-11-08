@@ -8,7 +8,7 @@ ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=(k+2)^{-1}$                        |   
 ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=(k+2)^{-2}$                        |   36.7 ± 1.2    |    1.104 ± 0.139    | 8.02e-13 ± 1.0e-13
 ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=0.9^{k+1}$                         |   19.2 ± 3.4    |    0.572 ± 0.107    | 8.43e-13 ± 6.7e-14
 ecCRM, Deep ($T=P_Y P_X P_Y$), $\alpha_k=0.9^{k+1}$                         |   34.2 ± 1.1    |    1.255 ± 0.099    | 8.20e-13 ± 1.0e-13
-MAP                                                                         |  113.4 ± 2.8    |    2.535 ± 0.156    | 8.97e-13 ± 5.4e-14
+MAP                                                                         |  113.4 ± 2.8    |    1.582 ± 0.200    | 8.97e-13 ± 5.4e-14
 Cimmino                                                                     |  465.9 ± 10.8   |    7.093 ± 0.296    | 9.74e-13 ± 1.3e-14
 
 PAIRED COMPARISON: ecCRM, $\alpha_k=(k+2)^{-1/2}$ vs cCRM (n=50)

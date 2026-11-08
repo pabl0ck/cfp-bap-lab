@@ -75,7 +75,7 @@
   ],
   "source_sha256": {
     "matrix_completion.py": "809c544f38f60ffb6622efcfdec6ab0e0b78151b499cc86e0fdafdd9b58a6822",
-    "ellipsoids.py": "77de7162f88400586a1222a069ac6ff4c6c76be44a44de08e6bda4d239bde94a",
+    "ellipsoids.py": "44fdb550aa9b3f90f14b828f16ed08702a62a18be7a5dda7f00b9d86cd9db3ba",
     "run_experiments.py": "4ee40e555f9ad530ffd2d5a9aa972cbcfc6a21c2f9e495c87f289206edf1ae7b",
     "archive_io.py": "5ab0081350257a610e70e6251bdf706ac3464015ad50bc9036c4c911fd7e57c6",
     "experiment_config.json": "e5a1cf9f9d2a340a6ff9ebf15fcd942cf7f14a7cd9ad0a1163f2e7b0183d1ce0"
@@ -154,5 +154,13 @@
     "instance_048.json": "66e5d518327f4eb2b0f7b1c3531cacda711c651962af8550b017af653b8958fe",
     "instance_049.json": "080dc43b99da1e53d029bc3ef572d255aa9bb3fb318bc74b000ae7e9208d69c1"
   },
-  "completed_utc": "2026-11-08T16:57:31.363783+00:00"
+  "completed_utc": "2026-11-08T16:57:31.363783+00:00",
+  "original_archive_commit": "20cd05ed8c3e527cdf5f9c0226029acb740a0599",
+  "original_source_sha256": {
+    "matrix_completion.py": "809c544f38f60ffb6622efcfdec6ab0e0b78151b499cc86e0fdafdd9b58a6822",
+    "ellipsoids.py": "77de7162f88400586a1222a069ac6ff4c6c76be44a44de08e6bda4d239bde94a",
+    "run_experiments.py": "4ee40e555f9ad530ffd2d5a9aa972cbcfc6a21c2f9e495c87f289206edf1ae7b",
+    "archive_io.py": "5ab0081350257a610e70e6251bdf706ac3464015ad50bc9036c4c911fd7e57c6",
+    "experiment_config.json": "e5a1cf9f9d2a340a6ff9ebf15fcd942cf7f14a7cd9ad0a1163f2e7b0183d1ce0"
+  }
 }

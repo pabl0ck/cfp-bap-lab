@@ -134,16 +134,15 @@ def export_one(benchmark, manifest, records, output):
     by_method = {row["Method"]: row for row in summary}
     table_order = [MATRIX_DEEP, "cCRM", "MAP", "Cimmino"] if matrix else [
         ELLIPSOID_METHODS[4], ELLIPSOID_METHODS[3], ELLIPSOID_METHODS[2],
-        ELLIPSOID_METHODS[1], "cCRM", "MAP", "Cimmino",
+        ELLIPSOID_METHODS[1], ELLIPSOID_METHODS[5], "cCRM", "MAP", "Cimmino",
     ]
     table = [by_method[method] for method in table_order]
     write_csv(output / f"table{number}.csv", table)
     write_csv(output / f"table{number}_all_methods.csv", summary)
     latex_table(output / f"table{number}.tex", table, benchmark)
     if not matrix:
-        expanded_order = [*table_order[:4], ELLIPSOID_METHODS[5], *table_order[4:]]
-        latex_table(output / "table2_all_methods.tex", [by_method[m] for m in expanded_order], benchmark)
-
+        latex_table(output / "table2_all_methods.tex", table, benchmark)
+        
     comparison_methods = [MATRIX_DEEP] if matrix else ELLIPSOID_METHODS[1:6]
     paired = []
     pairs = []
