@@ -47,13 +47,11 @@ Generated files:
 | --- | --- |
 | `artifacts/table1.tex`, `table2.tex` | LaTeX tabular environments ready to insert into the paper; bold best means among methods that converged on every instance |
 | `artifacts/table1.csv`, `table2.csv` | Unrounded means and standard deviations behind each paper table |
-| `artifacts/table2_all_methods.tex` | The same eight-method ellipsoid table under the original expanded export filename |
 | `artifacts/table1_per_instance.csv`, `table2_per_instance.csv` | One row per instance and method, including seed, measured runtime, iterations, and reported final residual |
 | `artifacts/table1_pairs.csv`, `table2_pairs.csv` | Explicit matched-instance comparisons against cCRM |
 | `artifacts/table1_paired_statistics.json`, `table2_paired_statistics.json` | Paired differences and bootstrap confidence intervals |
 | `artifacts/fig2_data.csv`, `fig3_data.csv` | Exact pointwise curve means and standard deviations |
 | `artifacts/fig2.pdf`, `fig2.png`, `fig3.pdf`, `fig3.png` | Regenerated figures |
-| `artifacts/*_summary.txt` | Human-readable summaries and paired comparisons |
 | `artifacts/reproduction_manifest.json` | Input and output checksums |
 
 With the same rendering environment, verify byte-for-byte regeneration of every derived file:
@@ -110,7 +108,6 @@ For a quick installation and pipeline check:
 python run_experiments.py --smoke
 python reproduce.py --data-dir validation_data --output-dir validation_artifacts --allow-validation
 python reproduce.py --data-dir validation_data --output-dir validation_artifacts --allow-validation --verify
-python -m unittest discover -s tests -v
 ```
 
 Smoke records use two small instances and are explicitly labeled validation data. They cannot be processed as paper results without the explicit `--allow-validation` option.
@@ -125,5 +122,3 @@ Smoke records use two small instances and are explicitly labeled validation data
 - `data/`: the complete measured archive and its manifests.
 - `artifacts/`: all regenerated paper outputs and their checksums.
 - `requirements.txt`: pinned Python dependencies.
-- `tests/`: integrity, pairing, float round-trip, and paired-bootstrap checks.
-- `paper/availability.tex`: version-pinned availability statement.

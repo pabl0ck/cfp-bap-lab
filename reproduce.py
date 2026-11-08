@@ -126,9 +126,6 @@ def export_one(benchmark, manifest, records, output):
             raw_rows.append(raw)
             histories[method].append(history)
     write_csv(output / f"table{number}_per_instance.csv", raw_rows)
-    write_csv(output / f"table{number}_seeds.csv", [
-        {"instance_id": rec["instance_id"], "seed": rec["seed"]} for rec in records
-    ])
 
     summary = summarize(manifest, records)
     by_method = {row["Method"]: row for row in summary}
@@ -138,11 +135,7 @@ def export_one(benchmark, manifest, records, output):
     ]
     table = [by_method[method] for method in table_order]
     write_csv(output / f"table{number}.csv", table)
-    write_csv(output / f"table{number}_all_methods.csv", summary)
     latex_table(output / f"table{number}.tex", table, benchmark)
-    if not matrix:
-        latex_table(output / "table2_all_methods.tex", table, benchmark)
-        
     comparison_methods = [MATRIX_DEEP] if matrix else ELLIPSOID_METHODS[1:6]
     paired = []
     pairs = []
@@ -217,11 +210,8 @@ def regenerate(data_root, output, benchmarks, allow_validation=False):
         if manifest["profile"] != "paper" and not allow_validation:
             raise ValueError("Validation data cannot be labeled as paper results; use --allow-validation explicitly")
         inputs[benchmark] = hashlib.sha256((Path(data_root) / benchmark / "manifest.json").read_bytes()).hexdigest()
-        buffer = io.StringIO()
-        with contextlib.redirect_stdout(buffer):
+        with contextlib.redirect_stdout(io.StringIO()):
             export_one(benchmark, manifest, records, output)
-        summary = "\n".join(line.rstrip() for line in buffer.getvalue().splitlines())
-        (output / f"{benchmark}_summary.txt").write_text(summary + "\n", encoding="utf-8")
     files = sorted(path for path in output.iterdir() if path.is_file() and path.name != "reproduction_manifest.json")
     provenance = {
         "schema_version": 1,
