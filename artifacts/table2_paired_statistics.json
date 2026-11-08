@@ -1,0 +1,122 @@
+[
+  {
+    "baseline": "cCRM",
+    "Method": "ecCRM, Standard ($T=P_Y P_X$), $\\alpha_k=(k+2)^{-1/2}$",
+    "n_pairs": 50,
+    "iterations_saved_mean": 5.1,
+    "iterations_saved_sd": 4.48694250701126,
+    "time_saved_mean": 0.1203480120014865,
+    "time_saved_sd": 0.17924849054513955,
+    "iteration_reduction_pct": 10.446538303973785,
+    "runtime_reduction_pct": 8.315518816401157,
+    "iteration_reduction_ci95_pct": [
+      8.985985160758458,
+      13.118154485590619
+    ],
+    "runtime_reduction_ci95_pct": [
+      5.158545400669539,
+      11.95073223187447
+    ],
+    "extra_runtime_reduction_pp": -2.131019487572628,
+    "extra_runtime_reduction_ci95_pp": [
+      -4.583741496766042,
+      -0.024956072924044125
+    ]
+  },
+  {
+    "baseline": "cCRM",
+    "Method": "ecCRM, Standard ($T=P_Y P_X$), $\\alpha_k=(k+2)^{-1}$",
+    "n_pairs": 50,
+    "iterations_saved_mean": 9.46,
+    "iterations_saved_sd": 0.542481072744215,
+    "time_saved_mean": 0.21916037599905394,
+    "time_saved_sd": 0.18807796496302004,
+    "iteration_reduction_pct": 19.377304383449413,
+    "runtime_reduction_pct": 15.143018984037504,
+    "iteration_reduction_ci95_pct": [
+      19.163882232932142,
+      19.59016393442622
+    ],
+    "runtime_reduction_ci95_pct": [
+      11.364200947314737,
+      18.298799253983123
+    ],
+    "extra_runtime_reduction_pp": -4.23428539941191,
+    "extra_runtime_reduction_ci95_pp": [
+      -8.021616744201362,
+      -1.1076040310748734
+    ]
+  },
+  {
+    "baseline": "cCRM",
+    "Method": "ecCRM, Standard ($T=P_Y P_X$), $\\alpha_k=(k+2)^{-2}$",
+    "n_pairs": 50,
+    "iterations_saved_mean": 12.16,
+    "iterations_saved_sd": 0.6502746672423453,
+    "time_saved_mean": 0.3428120080032386,
+    "time_saved_sd": 0.18327009638148778,
+    "iteration_reduction_pct": 24.90782466202377,
+    "runtime_reduction_pct": 23.686803426416237,
+    "iteration_reduction_ci95_pct": [
+      24.702013974517044,
+      25.11210762331838
+    ],
+    "runtime_reduction_ci95_pct": [
+      20.12213667409811,
+      26.545023744577882
+    ],
+    "extra_runtime_reduction_pp": -1.2210212356075338,
+    "extra_runtime_reduction_ci95_pp": [
+      -4.802433628274944,
+      1.6340034946043318
+    ]
+  },
+  {
+    "baseline": "cCRM",
+    "Method": "ecCRM, Standard ($T=P_Y P_X$), $\\alpha_k=0.9^{k+1}$",
+    "n_pairs": 50,
+    "iterations_saved_mean": 29.62,
+    "iterations_saved_sd": 3.896047185734458,
+    "time_saved_mean": 0.8750394020031672,
+    "time_saved_sd": 0.13992925863975336,
+    "iteration_reduction_pct": 60.671855796804586,
+    "runtime_reduction_pct": 60.4613777281163,
+    "iteration_reduction_ci95_pct": [
+      58.52854160205155,
+      61.88911704312115
+    ],
+    "runtime_reduction_ci95_pct": [
+      58.09796746363391,
+      62.210095571786134
+    ],
+    "extra_runtime_reduction_pp": -0.210478068688289,
+    "extra_runtime_reduction_ci95_pp": [
+      -1.3715822164954334,
+      0.8130171280343308
+    ]
+  },
+  {
+    "baseline": "cCRM",
+    "Method": "ecCRM, Deep ($T=P_Y P_X P_Y$), $\\alpha_k=0.9^{k+1}$",
+    "n_pairs": 50,
+    "iterations_saved_mean": 14.66,
+    "iterations_saved_sd": 0.8946553321057815,
+    "time_saved_mean": 0.19202436999883502,
+    "time_saved_sd": 0.12576606083712893,
+    "iteration_reduction_pct": 30.028676771814833,
+    "runtime_reduction_pct": 13.26804020587533,
+    "iteration_reduction_ci95_pct": [
+      29.69322004005996,
+      30.362247183819772
+    ],
+    "runtime_reduction_ci95_pct": [
+      10.96277162582842,
+      15.456922771608582
+    ],
+    "extra_runtime_reduction_pp": -16.760636565939503,
+    "extra_runtime_reduction_ci95_pp": [
+      -19.004892408034532,
+      -14.645588442076187
+    ]
+  }
+]

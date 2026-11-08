@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "bootstrap_seed": 20261106,
+  "bootstrap_resamples": 10000,
+  "matrix_completion": {
+    "n": 120,
+    "rank": 10,
+    "observation_probability": 0.75,
+    "alpha": 0.5,
+    "max_iter": 1500,
+    "tolerance": 0.01,
+    "seeds": [42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91],
+    "table_standard_deviation_ddof": 1,
+    "history_standard_deviation_ddof": 0,
+    "rng": "numpy.random.Generator(PCG64(seed))"
+  },
+  "ellipsoids": {
+    "n": 3000,
+    "max_iter": 600,
+    "tolerance": 1e-12,
+    "anisotropy": 5.0,
+    "rho": 0.95,
+    "initial_distance": 8.0,
+    "seeds": [1234,1235,1236,1237,1238,1239,1240,1241,1242,1243,1244,1245,1246,1247,1248,1249,1250,1251,1252,1253,1254,1255,1256,1257,1258,1259,1260,1261,1262,1263,1264,1265,1266,1267,1268,1269,1270,1271,1272,1273,1274,1275,1276,1277,1278,1279,1280,1281,1282,1283],
+    "table_standard_deviation_ddof": 0,
+    "history_standard_deviation_ddof": 0,
+    "rng": "numpy.random.Generator(PCG64(seed))"
+  }
+}

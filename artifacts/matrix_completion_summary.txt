@@ -1,0 +1,19 @@
+
+============================================================================================================================================
+RESULTS: PSD MATRIX COMPLETION (n=120, rank=10, 75% observed, 50 independent problems)
+============================================================================================================================================
+                                     Method    Time (s) Iterations         Final Viol  PSD Projs Affine Projs Converged
+ecCRM, Deep (T=P_Y P_X P_Y), $\alpha_k=0.5$ 2.21 ± 0.50   606 ± 60 9.98e-03 ± 9.6e-06 1211 ± 119   1817 ± 179      100%
+                                       cCRM 2.43 ± 0.63   699 ± 60 9.99e-03 ± 9.3e-06 1397 ± 119   1397 ± 119      100%
+                                        MAP 2.43 ± 0.48   1500 ± 0 3.56e-02 ± 3.9e-03   1500 ± 0     1500 ± 0        0%
+                                    Cimmino 2.64 ± 0.50   1500 ± 0 7.01e-02 ± 8.4e-03   1500 ± 0     1500 ± 0        0%
+
+PAIRED COMPARISON: Deep ecCRM vs cCRM (n=50)
+  Iterations saved, mean +/- SD: 92.860 +/- 9.046
+  Reduction in mean iterations: 13.29% (95% paired bootstrap CI: 12.84%, 13.75%)
+  Time saved (s), mean +/- SD: 0.2209 +/- 0.2857
+  Reduction in mean runtime: 9.10% (95% paired bootstrap CI: 6.29%, 12.03%)
+  Runtime reduction minus iteration reduction: -4.20 percentage points (95% paired bootstrap CI: -7.03, -1.27)
+
+Observed-entry fraction: 0.7492 ± 0.0045
+Projection counts and runtimes exclude evaluations performed solely for stopping or final-residual tests.

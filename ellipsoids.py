@@ -4,6 +4,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
 import time
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, List, Tuple, Union
@@ -219,6 +220,7 @@ def run_single_instance(
     z0 = x_star + 8.0 * u0
 
     T_func = lambda z, px=P_X, py=P_Y: py(px(z))
+    T_deep = lambda z, px=P_X, py=P_Y: py(px(py(z)))
 
     results = []
 
@@ -226,33 +228,43 @@ def run_single_instance(
         (
             r"cCRM",
             0.5,
+            T_func,
         ),
         (
             r"ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=(k+2)^{-1/2}$",
             lambda k: 1.0 / np.sqrt(k + 2),
+            T_func,
         ),
         (
             r"ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=(k+2)^{-1}$",
             lambda k: 1.0 / (k + 2),
+            T_func,
         ),
         (
             r"ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=(k+2)^{-2}$",
             lambda k: 1.0 / ((k + 2) ** 2),
+            T_func,
         ),
         (
             r"ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=0.9^{k+1}$",
             lambda k: 0.9 ** (k + 1),
+            T_func,
+        ),
+        (
+            r"ecCRM, Deep ($T=P_Y P_X P_Y$), $\alpha_k=0.9^{k+1}$",
+            lambda k: 0.9 ** (k + 1),
+            T_deep,
         ),
     ]
 
-    for method_name, alpha in schedules:
+    for method_name, alpha, kernel in schedules:
         start = time.perf_counter()
 
         traj, viol_hist = eccrm_iterates(
             z0,
             P_X,
             P_Y,
-            T_func,
+            kernel,
             alpha=alpha,
             max_iter=max_iter,
             tol=tol,
@@ -316,91 +328,197 @@ def run_single_instance(
     return results
 
 
-def run_ellipsoid_experiment(num_trials: int = 50):
-    n = 3000
-    max_iter = 600
-    tol = 1e-12
+def print_paired_statistics(
+    label,
+    baseline_iters,
+    method_iters,
+    baseline_times,
+    method_times,
+    n_bootstrap=10000,
+    seed=20261106,
+):
+    """Summarize matched instances; positive differences favor the method."""
+    b_k, m_k, b_t, m_t = [
+        np.asarray(values, dtype=float)
+        for values in (
+            baseline_iters, method_iters, baseline_times, method_times
+        )
+    ]
+    arrays = (b_k, m_k, b_t, m_t)
+    if any(values.ndim != 1 for values in arrays):
+        raise ValueError("Paired inputs must be one-dimensional.")
+    if len({len(values) for values in arrays}) != 1 or len(b_k) < 2:
+        raise ValueError("At least two complete instance pairs are required.")
+    if any(not np.all(np.isfinite(values)) for values in arrays):
+        raise ValueError("Paired inputs contain missing or nonfinite values.")
+    if np.any(b_k <= 0) or np.any(b_t <= 0):
+        raise ValueError("Baseline iterations and runtimes must be positive.")
 
-    stats = {}
+    differences_k = b_k - m_k
+    differences_t = b_t - m_t
+    reduction_k = 100.0 * (1.0 - m_k.mean() / b_k.mean())
+    reduction_t = 100.0 * (1.0 - m_t.mean() / b_t.mean())
 
-    for trial in range(num_trials):
-        rng = np.random.default_rng(seed=1234 + trial)
-        results = run_single_instance(rng, max_iter=max_iter, tol=tol, n=n)
+    # Resample entire instance pairs jointly for both metrics. This retains
+    # within-instance dependence between methods, iteration counts and times.
+    rng = np.random.default_rng(seed)
+    ids = rng.integers(0, len(b_k), size=(n_bootstrap, len(b_k)))
+    bootstrap_k = 100.0 * (
+        1.0 - m_k[ids].mean(axis=1) / b_k[ids].mean(axis=1)
+    )
+    bootstrap_t = 100.0 * (
+        1.0 - m_t[ids].mean(axis=1) / b_t[ids].mean(axis=1)
+    )
+    ci_k = np.quantile(bootstrap_k, [0.025, 0.975])
+    ci_t = np.quantile(bootstrap_t, [0.025, 0.975])
+    ci_extra = np.quantile(bootstrap_t - bootstrap_k, [0.025, 0.975])
 
-        for res in results:
-            key = res["Method"]
+    print(f"\nPAIRED COMPARISON: {label} (n={len(b_k)})")
+    print(
+        "  Iterations saved, mean +/- SD: "
+        f"{differences_k.mean():.3f} +/- {differences_k.std(ddof=1):.3f}"
+    )
+    print(
+        f"  Reduction in mean iterations: {reduction_k:.2f}% "
+        f"(95% paired bootstrap CI: {ci_k[0]:.2f}%, {ci_k[1]:.2f}%)"
+    )
+    print(
+        "  Time saved (s), mean +/- SD: "
+        f"{differences_t.mean():.4f} +/- {differences_t.std(ddof=1):.4f}"
+    )
+    print(
+        f"  Reduction in mean runtime: {reduction_t:.2f}% "
+        f"(95% paired bootstrap CI: {ci_t[0]:.2f}%, {ci_t[1]:.2f}%)"
+    )
+    print(
+        "  Runtime reduction minus iteration reduction: "
+        f"{reduction_t - reduction_k:.2f} percentage points "
+        f"(95% paired bootstrap CI: {ci_extra[0]:.2f}, {ci_extra[1]:.2f})"
+    )
 
-            if key not in stats:
-                stats[key] = {
-                    "Time": [],
-                    "Iters": [],
-                    "FinalViol": [],
-                    "Violations": [],
-                }
+    return {
+        "n_pairs": len(b_k),
+        "iterations_saved_mean": float(differences_k.mean()),
+        "iterations_saved_sd": float(differences_k.std(ddof=1)),
+        "time_saved_mean": float(differences_t.mean()),
+        "time_saved_sd": float(differences_t.std(ddof=1)),
+        "iteration_reduction_pct": float(reduction_k),
+        "runtime_reduction_pct": float(reduction_t),
+        "iteration_reduction_ci95_pct": tuple(float(x) for x in ci_k),
+        "runtime_reduction_ci95_pct": tuple(float(x) for x in ci_t),
+        "extra_runtime_reduction_pp": float(reduction_t - reduction_k),
+        "extra_runtime_reduction_ci95_pp": tuple(float(x) for x in ci_extra),
+    }
 
-            stats[key]["Time"].append(res["Time"])
-            stats[key]["Iters"].append(res["Iters"])
-            stats[key]["FinalViol"].append(res["FinalViol"])
-            stats[key]["Violations"].append(res["Violations"])
 
+def run_ellipsoid_experiment(num_trials=50):
+    """Run and archive the experiment; see run_experiments.py for the CLI."""
+    from run_experiments import main
+    main(["--benchmark", "ellipsoids", "--instances", str(num_trials)])
+
+
+def render_results(stats, num_trials, output_dir, n=3000):
+    """Regenerate the original summaries and figure without rerunning solvers."""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     plt.rcParams.update({
-        'font.size': 14,           # Global font size
-        'axes.titlesize': 16,      # Title size
-        'axes.labelsize': 14,      # X and Y label size
-        'xtick.labelsize': 12,     # X tick labels
-        'ytick.labelsize': 12,     # Y tick labels
-        'legend.fontsize': 10,     # Legend font size
+        "font.size": 10,
+        "axes.titlesize": 10,
+        "axes.labelsize": 10,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "legend.fontsize": 9,
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
     })
 
-    plt.figure(figsize=(9, 6))
+    display_labels = {
+        "cCRM": "cCRM",
+        r"ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=(k+2)^{-1/2}$":
+            r"ecCRM, $\alpha_k=(k+2)^{-1/2}$",
+        r"ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=(k+2)^{-1}$":
+            r"ecCRM, $\alpha_k=(k+2)^{-1}$",
+        r"ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=(k+2)^{-2}$":
+            r"ecCRM, $\alpha_k=(k+2)^{-2}$",
+        r"ecCRM, Standard ($T=P_Y P_X$), $\alpha_k=0.9^{k+1}$":
+            r"ecCRM, $\alpha_k=0.9^{k+1}$",
+        r"ecCRM, Deep ($T=P_Y P_X P_Y$), $\alpha_k=0.9^{k+1}$":
+            r"Deep ecCRM, $\alpha_k=0.9^{k+1}$",
+        "MAP": "MAP",
+        "Cimmino": "Cimmino",
+    }
 
-    for method in stats.keys():
+    fig, (ax_full, ax_zoom) = plt.subplots(
+        1, 2, figsize=(7.2, 4.5), sharey=True,
+    )
+    handles = []
+    labels = []
+    longest_history = 1
+
+    # Preserve the existing last-value extension within each method.
+    # Every pointwise mean includes all runs of that method.
+    for index, method in enumerate(stats.keys()):
         viols = [v for v in stats[method]["Violations"] if len(v) > 0]
         if not viols:
             continue
 
         max_len = max(len(v) for v in viols)
+        longest_history = max(longest_history, max_len)
         padded_viols = np.array([
             v + [v[-1]] * (max_len - len(v))
             for v in viols
         ])
-
         mean_viol = np.mean(padded_viols, axis=0)
-        std_viol = np.std(padded_viols, axis=0)
         iters = np.arange(1, max_len + 1)
+        label = display_labels.get(method, method)
+        is_deep = "Deep" in method
+        if is_deep:
+            color = "black"
+        elif method == "MAP":
+            color = "tab:brown"
+        elif method == "Cimmino":
+            color = "tab:pink"
+        else:
+            color = f"C{index}"
+        linestyle = "--" if is_deep else "-"
 
-        line = plt.semilogy(
-            iters,
-            mean_viol,
-            linewidth=1.5,
-            label=method,
-        )[0]
+        for ax in (ax_full, ax_zoom):
+            line, = ax.semilogy(
+                iters, mean_viol,
+                color=color, linestyle=linestyle, linewidth=1.7,
+                label=label,
+            )
+            if ax is ax_full:
+                handles.append(line)
+                labels.append(label)
 
-        color = line.get_color()
+    ax_full.set_xlim(0, longest_history)
+    ax_zoom.set_xlim(0, 60)
+    ax_full.set_title("Full range")
+    ax_zoom.set_title(r"Detail: $0 \leq k \leq 60$")
+    ax_full.set_ylabel("Feasibility violation")
+    for ax in (ax_full, ax_zoom):
+        ax.set_xlabel("Iteration")
+        ax.grid(True, which="major", linestyle="--", alpha=0.35)
+        ax.set_axisbelow(True)
 
-        plt.fill_between(
-            iters,
-            np.clip(mean_viol - std_viol, 1e-15, None),
-            mean_viol + std_viol,
-            color=color,
-            alpha=0.15,
-        )
-
-    plt.xlabel("Iteration")
-    plt.ylabel("Violation (max dist to X, Y)")
-    plt.title(
-        f"ecCRM, MAP, and Cimmino on Ellipsoids "
-        f"(Avg. over {num_trials} runs)"
+    fig.suptitle(
+        f"Ellipsoids (mean over {num_trials} instances)",
+        fontsize=11, y=0.98,
     )
-    plt.grid(True, which="both", linestyle="--", alpha=0.3)
-    plt.legend(
-    fontsize=9,           # Increases the text size
-    borderpad=1.0,         # Adds more space inside the box edges
-    labelspacing=0.8,      # Adds more vertical space between the method names
-    handlelength=2.0       # Makes the colored line samples longer
+    fig.legend(
+        handles, labels,
+        loc="lower center", bbox_to_anchor=(0.5, 0.015),
+        ncol=3, fontsize=9, frameon=False,
+        columnspacing=1.2, handlelength=2.2,
     )
-    plt.tight_layout()
-    plt.show()
+    fig.subplots_adjust(
+        left=0.10, right=0.98, bottom=0.34, top=0.87, wspace=0.12,
+    )
+    fig.savefig(output_dir / "fig3.pdf", bbox_inches="tight",
+                metadata={"CreationDate": None, "ModDate": None})
+    fig.savefig(output_dir / "fig3.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
 
     print(f"Two ellipsoids in R^{n}")
     print(f"(Averaged over {num_trials} runs)")
@@ -429,6 +547,21 @@ def run_ellipsoid_experiment(num_trials: int = 50):
             f"{viol_mean:.2e} ± {viol_std:.1e}"
         )
 
+    # Each list was appended in the same trial order, so index i denotes
+    # the same generated instance for every method.
+    for method in stats:
+        if method in ("cCRM", "MAP", "Cimmino"):
+            continue
+        print_paired_statistics(
+            f"{display_labels.get(method, method)} vs cCRM",
+            stats["cCRM"]["Iters"],
+            stats[method]["Iters"],
+            stats["cCRM"]["Time"],
+            stats[method]["Time"],
+        )
+
 
 if __name__ == "__main__":
-    run_ellipsoid_experiment(num_trials=50)
+    import sys
+    from run_experiments import main
+    main(["--benchmark", "ellipsoids", *sys.argv[1:]])

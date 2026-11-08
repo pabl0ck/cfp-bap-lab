@@ -1,0 +1,11 @@
+{
+    "cpu_model":  "AMD Ryzen 7 7735HS with Radeon Graphics",
+    "platform":  "Windows-11-10.0.26300-SP0",
+    "python":  "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "logical_cpus_available":  16,
+    "thread_limits":  {
+                          "OMP_NUM_THREADS":  "1",
+                          "OPENBLAS_NUM_THREADS":  "1",
+                          "MKL_NUM_THREADS":  "1"
+                      }
+}

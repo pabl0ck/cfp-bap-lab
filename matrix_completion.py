@@ -5,6 +5,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
 import time
+from pathlib import Path
 from typing import Callable, List, Tuple, Union
 
 import matplotlib.pyplot as plt
@@ -297,118 +298,102 @@ def make_configs(
     ]
 
 
-def run_feasibility_experiment(
-    num_instances: int = 50,
-) -> None:
-    n_matrix = 120
-    rank = 10
-    observation_probability = 0.75
-
-    max_iter = 1500
-    tol = 1e-2
-    alpha = 0.5
-
-    P_X = PSDConeProjector(n_matrix)
-
-    method_names = [
-        "Cimmino",
-        "MAP",
-        "cCRM",
-        r"ecCRM, Deep (T=P_Y P_X P_Y), $\alpha_k=0.5$",
+def print_paired_statistics(
+    label,
+    baseline_iters,
+    method_iters,
+    baseline_times,
+    method_times,
+    n_bootstrap=10000,
+    seed=20261106,
+):
+    """Summarize matched instances; positive differences favor the method."""
+    b_k, m_k, b_t, m_t = [
+        np.asarray(values, dtype=float)
+        for values in (
+            baseline_iters, method_iters, baseline_times, method_times
+        )
     ]
+    arrays = (b_k, m_k, b_t, m_t)
+    if any(values.ndim != 1 for values in arrays):
+        raise ValueError("Paired inputs must be one-dimensional.")
+    if len({len(values) for values in arrays}) != 1 or len(b_k) < 2:
+        raise ValueError("At least two complete instance pairs are required.")
+    if any(not np.all(np.isfinite(values)) for values in arrays):
+        raise ValueError("Paired inputs contain missing or nonfinite values.")
+    if np.any(b_k <= 0) or np.any(b_t <= 0):
+        raise ValueError("Baseline iterations and runtimes must be positive.")
 
-    results = []
-    trajectories = {
-        method_name: []
-        for method_name in method_names
-    }
+    differences_k = b_k - m_k
+    differences_t = b_t - m_t
+    reduction_k = 100.0 * (1.0 - m_k.mean() / b_k.mean())
+    reduction_t = 100.0 * (1.0 - m_t.mean() / b_t.mean())
 
-    observed_fractions = []
+    # Resample entire instance pairs jointly for both metrics. This retains
+    # within-instance dependence between methods, iteration counts and times.
+    rng = np.random.default_rng(seed)
+    ids = rng.integers(0, len(b_k), size=(n_bootstrap, len(b_k)))
+    bootstrap_k = 100.0 * (
+        1.0 - m_k[ids].mean(axis=1) / b_k[ids].mean(axis=1)
+    )
+    bootstrap_t = 100.0 * (
+        1.0 - m_t[ids].mean(axis=1) / b_t[ids].mean(axis=1)
+    )
+    ci_k = np.quantile(bootstrap_k, [0.025, 0.975])
+    ci_t = np.quantile(bootstrap_t, [0.025, 0.975])
+    ci_extra = np.quantile(bootstrap_t - bootstrap_k, [0.025, 0.975])
 
+    print(f"\nPAIRED COMPARISON: {label} (n={len(b_k)})")
     print(
-        f"Running {num_instances} independent "
-        "PSD matrix-completion problems..."
+        "  Iterations saved, mean +/- SD: "
+        f"{differences_k.mean():.3f} +/- {differences_k.std(ddof=1):.3f}"
+    )
+    print(
+        f"  Reduction in mean iterations: {reduction_k:.2f}% "
+        f"(95% paired bootstrap CI: {ci_k[0]:.2f}%, {ci_k[1]:.2f}%)"
+    )
+    print(
+        "  Time saved (s), mean +/- SD: "
+        f"{differences_t.mean():.4f} +/- {differences_t.std(ddof=1):.4f}"
+    )
+    print(
+        f"  Reduction in mean runtime: {reduction_t:.2f}% "
+        f"(95% paired bootstrap CI: {ci_t[0]:.2f}%, {ci_t[1]:.2f}%)"
+    )
+    print(
+        "  Runtime reduction minus iteration reduction: "
+        f"{reduction_t - reduction_k:.2f} percentage points "
+        f"(95% paired bootstrap CI: {ci_extra[0]:.2f}, {ci_extra[1]:.2f})"
     )
 
-    for instance in range(num_instances):
-        rng = np.random.default_rng(42 + instance)
+    return {
+        "n_pairs": len(b_k),
+        "iterations_saved_mean": float(differences_k.mean()),
+        "iterations_saved_sd": float(differences_k.std(ddof=1)),
+        "time_saved_mean": float(differences_t.mean()),
+        "time_saved_sd": float(differences_t.std(ddof=1)),
+        "iteration_reduction_pct": float(reduction_k),
+        "runtime_reduction_pct": float(reduction_t),
+        "iteration_reduction_ci95_pct": tuple(float(x) for x in ci_k),
+        "runtime_reduction_ci95_pct": tuple(float(x) for x in ci_t),
+        "extra_runtime_reduction_pp": float(reduction_t - reduction_k),
+        "extra_runtime_reduction_ci95_pp": tuple(float(x) for x in ci_extra),
+    }
 
-        P_Y, z0, observed_fraction = generate_matrix_completion_problem(
-            n=n_matrix,
-            rank=rank,
-            observation_probability=observation_probability,
-            rng=rng,
-        )
 
-        observed_fractions.append(observed_fraction)
+def run_feasibility_experiment(num_instances=50):
+    """Run and archive the experiment; see run_experiments.py for the CLI."""
+    from run_experiments import main
+    main(["--benchmark", "matrix_completion", "--instances", str(num_instances)])
 
-        configs = make_configs(P_X, P_Y)
 
-        for cfg in configs:
-            if cfg["m_type"] == "ap":
-                traj, viol_hist, elapsed_time = ap_iterates(
-                    z0=z0,
-                    P_X=P_X,
-                    P_Y=P_Y,
-                    max_iter=max_iter,
-                    tol=tol,
-                )
-
-            else:
-                start_time = time.perf_counter()
-
-                if cfg["m_type"] == "cimmino":
-                    traj, viol_hist = cimmino_iterates(
-                        z0=z0,
-                        P_X=P_X,
-                        P_Y=P_Y,
-                        max_iter=max_iter,
-                        tol=tol,
-                    )
-
-                else:
-                    traj, viol_hist = eccrm_iterates(
-                        z0=z0,
-                        P_X=P_X,
-                        P_Y=P_Y,
-                        T=cfg["T"],
-                        alpha=alpha,
-                        max_iter=max_iter,
-                        tol=tol,
-                    )
-
-                elapsed_time = time.perf_counter() - start_time
-
-            z_final = traj[-1]
-
-            # External final evaluation. It is outside the timed region and is
-            # not included in the projection counts.
-            final_viol = max(
-                np.linalg.norm(z_final - P_X(z_final)),
-                np.linalg.norm(z_final - P_Y(z_final)),
-            )
-
-            iterations = len(viol_hist)
-
-            results.append(
-                {
-                    "Instance": instance,
-                    "Method": cfg["name"],
-                    "Time": elapsed_time,
-                    "Iterations": float(iterations),
-                    "Viol": final_viol,
-                    "Converged": final_viol <= tol,
-                    "PSD_Projs": float(
-                        iterations * cfg["psd_per_iter"]
-                    ),
-                    "Affine_Projs": float(
-                        iterations * cfg["affine_per_iter"]
-                    ),
-                }
-            )
-
-            trajectories[cfg["name"]].append(viol_hist)
-
+def render_results(results, trajectories, observed_fractions, num_instances,
+                   output_dir, n_matrix=120, rank=10,
+                   observation_probability=0.75):
+    """Regenerate the original summary and figure from archived measurements."""
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    method_names = list(trajectories)
     df = pd.DataFrame(results)
 
     summary = (
@@ -507,6 +492,23 @@ def run_feasibility_experiment(
         )
     )
 
+    # Align the two methods by their common instance IDs.
+    paired_iterations = df.pivot(
+        index="Instance", columns="Method", values="Iterations"
+    )
+    paired_times = df.pivot(
+        index="Instance", columns="Method", values="Time"
+    ).reindex(paired_iterations.index)
+    deep_method = r"ecCRM, Deep (T=P_Y P_X P_Y), $\alpha_k=0.5$"
+    print_paired_statistics(
+        "Deep ecCRM vs cCRM",
+        paired_iterations["cCRM"].to_numpy(),
+        paired_iterations[deep_method].to_numpy(),
+        paired_times["cCRM"].to_numpy(),
+        paired_times[deep_method].to_numpy(),
+    )
+
+
     print(
         "\nObserved-entry fraction: "
         f"{np.mean(observed_fractions):.4f} "
@@ -518,101 +520,105 @@ def run_feasibility_experiment(
         "performed solely for stopping or final-residual tests."
     )
 
-    plt.rcParams.update(
-        {
-            "font.size": 14,
-            "axes.titlesize": 16,
-            "axes.labelsize": 14,
-            "xtick.labelsize": 12,
-            "ytick.labelsize": 12,
-            "legend.fontsize": 10,
-        }
-    )
+    plt.rcParams.update({
+        "font.size": 10,
+        "axes.titlesize": 11,
+        "axes.labelsize": 10,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
+        "legend.fontsize": 10,
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
+    })
 
-    plt.figure(figsize=(8, 6))
+    # Last-value extension within each method: a terminated run keeps its
+    # final violation until the longest run of that method has terminated.
+    # Means and standard deviations therefore use all instances at every k.
+    deep_name = r"ecCRM, Deep (T=P_Y P_X P_Y), $\alpha_k=0.5$"
+    display_labels = {
+        "Cimmino": "Cimmino",
+        "MAP": "MAP",
+        "cCRM": "cCRM",
+        deep_name: r"Deep ecCRM ($\alpha=1/2$)",
+    }
+    colors = {
+        "Cimmino": "tab:blue",
+        "MAP": "tab:orange",
+        "cCRM": "tab:green",
+        deep_name: "tab:red",
+    }
+
+    fig, (ax_mean, ax_spread) = plt.subplots(
+        2, 1,
+        figsize=(7.2, 5.0),
+        sharex=True,
+        gridspec_kw={"height_ratios": [3, 1], "hspace": 0.12},
+    )
+    max_relative_sd = 0.0
 
     for method_name in method_names:
         violation_histories = trajectories[method_name]
-
-        max_length = max(
-            len(history)
+        max_length = max(len(history) for history in violation_histories)
+        padded_histories = np.array([
+            history + [history[-1]] * (max_length - len(history))
             for history in violation_histories
-        )
+        ])
 
-        padded_histories = np.array(
-            [
-                history
-                + [history[-1]] * (max_length - len(history))
-                for history in violation_histories
-            ]
-        )
+        mean_violation = np.mean(padded_histories, axis=0)
+        std_violation = np.std(padded_histories, axis=0)
+        iteration_axis = np.arange(1, max_length + 1)
+        color = colors[method_name]
+        linestyle = "--" if method_name == deep_name else "-"
 
-        mean_violation = np.mean(
-            padded_histories,
-            axis=0,
+        ax_mean.semilogy(
+            iteration_axis, mean_violation,
+            color=color, linestyle=linestyle, linewidth=1.8,
+            label=display_labels[method_name],
         )
-        std_violation = np.std(
-            padded_histories,
-            axis=0,
-        )
-
-        iteration_axis = np.arange(
-            1,
-            max_length + 1,
-        )
-
-        line = plt.semilogy(
+        ax_mean.fill_between(
             iteration_axis,
-            mean_violation,
-            linewidth=1.5,
-            label=method_name,
-        )[0]
-
-        plt.fill_between(
-            iteration_axis,
-            np.clip(
-                mean_violation - std_violation,
-                1e-15,
-                None,
-            ),
+            np.clip(mean_violation - std_violation, 1e-15, None),
             mean_violation + std_violation,
-            color=line.get_color(),
-            alpha=0.15,
+            color=color, alpha=0.20, linewidth=0,
         )
 
-    plt.xlabel("Iteration")
-    plt.ylabel("Violation")
-    plt.title(
-        "PSD Matrix Completion "
-        f"(Average over {num_instances} problems)"
+        if method_name in ("cCRM", deep_name):
+            relative_sd = np.divide(
+                100.0 * std_violation,
+                mean_violation,
+                out=np.zeros_like(std_violation),
+                where=mean_violation > 0,
+            )
+            max_relative_sd = max(max_relative_sd, float(np.max(relative_sd)))
+            ax_spread.plot(
+                iteration_axis, relative_sd,
+                color=color, linestyle=linestyle, linewidth=1.8,
+                label=display_labels[method_name],
+            )
+
+    ax_mean.set_title(
+        f"PSD matrix completion (mean over {num_instances} instances)"
     )
+    ax_mean.set_ylabel("Feasibility violation")
+    ax_mean.legend(loc="upper right", framealpha=0.95)
+    ax_spread.set_xlabel("Iteration")
+    ax_spread.set_ylabel("Relative SD (%)")
+    ax_spread.set_ylim(0, max(1.0, 1.4 * max_relative_sd))
+    ax_spread.legend(loc="upper right", ncol=2, fontsize=9, framealpha=0.95)
 
-    plt.grid(
-        True,
-        which="both",
-        linestyle="--",
-        alpha=0.3,
-    )
+    for ax in (ax_mean, ax_spread):
+        ax.grid(True, which="major", linestyle="--", alpha=0.35)
+        ax.set_axisbelow(True)
 
-    plt.legend(
-        fontsize=9,
-        borderpad=1.0,
-        labelspacing=0.8,
-        handlelength=2.0,
-    )
-
-    plt.tight_layout()
-
-    plt.savefig(
-        "matrixcompletion.png",
-        dpi=300,
-        bbox_inches="tight",
-    )
-
-    plt.show()
+    fig.align_ylabels()
+    fig.subplots_adjust(left=0.12, right=0.98, bottom=0.12, top=0.93)
+    fig.savefig(output_dir / "fig2.pdf", bbox_inches="tight",
+                metadata={"CreationDate": None, "ModDate": None})
+    fig.savefig(output_dir / "fig2.png", dpi=300, bbox_inches="tight")
+    plt.close(fig)
 
 
 if __name__ == "__main__":
-    run_feasibility_experiment(
-        num_instances=50
-    )
+    import sys
+    from run_experiments import main
+    main(["--benchmark", "matrix_completion", *sys.argv[1:]])

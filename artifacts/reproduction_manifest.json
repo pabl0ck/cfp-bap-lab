@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "data_manifest_sha256": {
+    "matrix_completion": "6215a7efcd967d15c475c1f55422163d712452875ed15a9e25dfa027ef500f9f",
+    "ellipsoids": "dc5b454f4f1e4a573af21f96c67e6de51ec189baaa7b34cca07235374ddb932e"
+  },
+  "postprocessor_sha256": "724ef13616d9fa7fb07e0565dd8e0698eacf8a2faed08c1415db753904d98e41",
+  "outputs_sha256": {
+    "ellipsoids_summary.txt": "3ad8d3b9c8ba1f6900c5ac65ba6e24fb1de43d4e8b437f47b2395f4db44ea7bd",
+    "fig2.pdf": "f81501a9635352e7e12642057ad5e83ed522723dc25b5c19c562efc26934252a",
+    "fig2.png": "78f720e3dfc295541cbc76c4bd8483dee7e2fc62784ad1cc5f176ca579859642",
+    "fig2_data.csv": "0390fd99600ef1a56263fccf3459c0c5cc875678069a8eed3f914a40d4a1391b",
+    "fig3.pdf": "99e2327e6824584da1b050e35dba8ed0af40c1c9be4f6b4e7f947791caa9daec",
+    "fig3.png": "15c7f4bf96559a98e346b2e9ad5bb1973aa59fb32ad54790f86e14c4e50f158e",
+    "fig3_data.csv": "3527f97b75cbfd2fbfca0504d60e370c5f10a209081e4f3e48c20c0b900d6544",
+    "matrix_completion_summary.txt": "d680da31e7bf60adaf1ec90411d72e6bb81387f288c6ec8149c7161a410ee9d6",
+    "table1.csv": "5c01f6f87b8bcf9911d38d8d2a0896ae1dae6dae7d1e0f1a86f7d1ca65d18839",
+    "table1.tex": "c44d4ff07ee9e6c4eb15577ffb98b78a17f82689e683d81f0d72875d1fb66c8e",
+    "table1_all_methods.csv": "8d891907d049dec20149bf5c4541addef52570f591d2d28f3548375c6206e2ad",
+    "table1_headline_statistics.tex": "4547647366343506bc6425d4756e60b4ab4bf174ef0cec6723befaff7f05710c",
+    "table1_paired_statistics.json": "29c683d8c6965a36d8311029455bf890bfb317a8274669e367a16305b364072c",
+    "table1_pairs.csv": "a133a7c637796b33aed055f05d7a64264f55765c3c2d330658f0dc78247865ca",
+    "table1_per_instance.csv": "baed57d2b2c5a790f7d3e68ae7f2ee69bff1127ab9b87e2c4b331595978eaf9e",
+    "table1_seeds.csv": "a31ccfaadb7f7d7a02f74492e06fd6bbd07d24e3e37872fdccafd4439f4a63bd",
+    "table2.csv": "b9ff63ad49c3eec7e6ddc38bbf394d8cfb2451e949a8c6c4b62f2d29427f2835",
+    "table2.tex": "516848f7d172cf6d78238c89522c9a83662d2605eee5ef6bb7a6046516376500",
+    "table2_all_methods.csv": "a94e19cb8246e86a6a42f16ca570b4a3fbc9ff74dfd202018e6f43341350db83",
+    "table2_all_methods.tex": "251e5de1cf7194e67662dd4dd4244898d5044c32eb662707c4b0d04e9055693d",
+    "table2_headline_statistics.tex": "a1fa1bbe2fcd931c1646b9421b413cc18d10e5f266620e9d9d70d680486ebe31",
+    "table2_paired_statistics.json": "c64cf67e0a2eb07796ef108a579acbc2045cd383af25d726557d334b5084ed93",
+    "table2_pairs.csv": "016e204627792264ca011792bc0c3b668bcfb004d63d4f1f0f4a323fd0c9ec37",
+    "table2_per_instance.csv": "5cf8b63a15f2d3b49a5cdfeca0d50feda35cbbbc777e8549503f57ee62c4f7fb",
+    "table2_seeds.csv": "8d74f8c896a082343cbba87c9916cf2359c6272f721aaa66246b79e5b37eafcd"
+  }
+}

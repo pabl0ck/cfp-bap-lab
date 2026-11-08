@@ -1,0 +1,26 @@
+[
+  {
+    "baseline": "cCRM",
+    "Method": "ecCRM, Deep (T=P_Y P_X P_Y), $\\alpha_k=0.5$",
+    "n_pairs": 50,
+    "iterations_saved_mean": 92.86,
+    "iterations_saved_sd": 9.046388387480544,
+    "time_saved_mean": 0.22089397400268354,
+    "time_saved_sd": 0.28573476356111627,
+    "iteration_reduction_pct": 13.293060009161694,
+    "runtime_reduction_pct": 9.096656354983047,
+    "iteration_reduction_ci95_pct": [
+      12.838958900536031,
+      13.747726794345429
+    ],
+    "runtime_reduction_ci95_pct": [
+      6.2894763442544805,
+      12.031247000048818
+    ],
+    "extra_runtime_reduction_pp": -4.196403654178647,
+    "extra_runtime_reduction_ci95_pp": [
+      -7.0336255273872785,
+      -1.2687033811053212
+    ]
+  }
+]
